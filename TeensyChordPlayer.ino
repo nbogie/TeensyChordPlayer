@@ -14,29 +14,29 @@
 // * 4 buttons connecting p3-p6 to ground (configures them to use internal pullup resistors)
 
 // GUItool: begin automatically generated code
-AudioSynthSimpleDrum     drum2;          //xy=58,80
-AudioSynthSimpleDrum     drum4;          //xy=62,161
-AudioSynthSimpleDrum     drum3;          //xy=78,124
-AudioSynthSimpleDrum     drum1;          //xy=90,33
-AudioSynthKarplusStrong  string4;        //xy=142,440
-AudioSynthKarplusStrong  string2;        //xy=144,367
-AudioSynthKarplusStrong  string3;        //xy=144,404
-AudioSynthKarplusStrong  string1;        //xy=150,330
-AudioSynthKarplusStrong  string5;        //xy=208,523
-AudioSynthKarplusStrong  string6;        //xy=209,561
-AudioMixer4              mixerDrums;         //xy=392,141
-AudioMixer4              mixerStrings1;         //xy=409,237
-AudioMixer4              mixerStrings2;         //xy=426,331
-AudioMixer4              mixerFinal;         //xy=592,142
-AudioOutputI2S           i2s1;           //xy=716,59
-AudioConnection          patchCord1(drum2, 0, mixerDrums, 1);
-AudioConnection          patchCord2(drum4, 0, mixerDrums, 3);
+AudioSynthSimpleDrum     drum1;          //xy=55,64
+AudioSynthSimpleDrum     drum2;          //xy=66,101
+AudioSynthSimpleDrum     drum3;          //xy=76,139
+AudioSynthSimpleDrum     drum4;          //xy=82,173
+AudioSynthKarplusStrong  string1;        //xy=95,250
+AudioSynthKarplusStrong  string2;        //xy=102,290
+AudioSynthKarplusStrong  string3;        //xy=109,328
+AudioSynthKarplusStrong  string4;        //xy=115,365
+AudioSynthKarplusStrong  string5;        //xy=129,404
+AudioSynthKarplusStrong  string6;        //xy=136,441
+AudioMixer4              mixerDrums;     //xy=291,139
+AudioMixer4              mixerStrings1;  //xy=324,285
+AudioMixer4              mixerStrings2;  //xy=331,356
+AudioMixer4              mixerFinal;     //xy=534,229
+AudioOutputI2S           i2s1;           //xy=679,188
+AudioConnection          patchCord1(drum1, 0, mixerDrums, 0);
+AudioConnection          patchCord2(drum2, 0, mixerDrums, 1);
 AudioConnection          patchCord3(drum3, 0, mixerDrums, 2);
-AudioConnection          patchCord4(drum1, 0, mixerDrums, 0);
-AudioConnection          patchCord5(string4, 0, mixerStrings1, 1);
-AudioConnection          patchCord6(string2, 0, mixerStrings1, 2);
-AudioConnection          patchCord7(string3, 0, mixerStrings1, 3);
-AudioConnection          patchCord8(string1, 0, mixerStrings1, 0);
+AudioConnection          patchCord4(drum4, 0, mixerDrums, 3);
+AudioConnection          patchCord5(string1, 0, mixerStrings1, 0);
+AudioConnection          patchCord6(string2, 0, mixerStrings1, 1);
+AudioConnection          patchCord7(string3, 0, mixerStrings1, 2);
+AudioConnection          patchCord8(string4, 0, mixerStrings1, 3);
 AudioConnection          patchCord9(string5, 0, mixerStrings2, 0);
 AudioConnection          patchCord10(string6, 0, mixerStrings2, 1);
 AudioConnection          patchCord11(mixerDrums, 0, mixerFinal, 0);
@@ -44,7 +44,7 @@ AudioConnection          patchCord12(mixerStrings1, 0, mixerFinal, 1);
 AudioConnection          patchCord13(mixerStrings2, 0, mixerFinal, 2);
 AudioConnection          patchCord14(mixerFinal, 0, i2s1, 0);
 AudioConnection          patchCord15(mixerFinal, 0, i2s1, 1);
-AudioControlSGTL5000     sgtl5000_1;     //xy=637,447
+AudioControlSGTL5000     sgtl5000_1;     //xy=638,468
 // GUItool: end automatically generated code
 
 
