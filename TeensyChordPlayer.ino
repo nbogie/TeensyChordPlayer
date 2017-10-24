@@ -9,6 +9,10 @@
 // selection of the most common chords in pop 
 // (e.g. I, ii, IV, V, vi) with some decorations.
 
+// Hardware setup: 
+// * 4 potentiometers A0 - A3.  A3 could be logarithmic, as it is for volume.
+// * 4 buttons connecting p3-p6 to ground (configures them to use internal pullup resistors)
+
 // GUItool: begin automatically generated code
 AudioSynthSimpleDrum     drum2;          //xy=58,80
 AudioSynthSimpleDrum     drum4;          //xy=62,161
@@ -210,8 +214,8 @@ void setup() {
   sgtl5000_1.volume(0.5);
 
   AudioInterrupts();
-
 }
+
 void showButtonStates() {
     Serial.print("buttons ");
     Serial.print(buttonStates[0]);
@@ -226,6 +230,9 @@ void loop() {
 
   if (millis() == next)
   {
+    float volume = map(analogRead(A3), 0, 1023, 0, 60) / 100.0;
+    sgtl5000_1.volume(volume); //TODO: consider updating volume more often.
+    
     for(int bn = 0; bn < 4; bn++){
       buttonStates[bn] = digitalRead(3+bn)==LOW;
     }
@@ -254,7 +261,7 @@ void loop() {
     }
     num++;
 
-    Serial.print("Diagnostics (Audio CPU and Audio Mem max usages: ");
+    Serial.print("Teensy Chord Player - Diagnostics (Audio CPU and Audio Mem max usages: ");
     Serial.print(AudioProcessorUsageMax());
     Serial.print(" ");
     Serial.println(AudioMemoryUsageMax());
