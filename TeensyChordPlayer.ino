@@ -5,11 +5,11 @@
 #include <Wire.h>
 #include <synth_simple_drum.h>
 
-//A simple chord player for teensy + audio which allows 
-// selection of the most common chords in pop 
+//A simple chord player for teensy + audio which allows
+// selection of the most common chords in pop
 // (e.g. I, ii, IV, V, vi) with some decorations.
 
-// Hardware setup: 
+// Hardware setup:
 // * 4 potentiometers A0 - A3.  A3 could be logarithmic, as it is for volume.
 // * 4 buttons connecting p3-p6 to ground (configures them to use internal pullup resistors)
 
@@ -47,7 +47,6 @@ AudioConnection          patchCord15(mixerFinal, 0, i2s1, 1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=638,468
 // GUItool: end automatically generated code
 
-
 AudioSynthKarplusStrong *strings [] = { &string1, &string2, &string3, &string4, &string5, &string6 };
 
 int major7[6] = {48, 59, 64, 67, 71, 76};
@@ -67,6 +66,11 @@ int offsets[7] = {0, 2, 4, 5, 7, 9, 11};
 
 bool buttonStates[4] = {false, false, false, false};
 
+static uint32_t next;
+int gKeyOffset = 0; //at higher scope to allow periodic logging
+
+//Note: I found that on the teensy 3.2, at 96MHz, notes lower than the 40th one do not
+// sound with the correct pitch, at least with the Karplus Strong string synthesis.
 const float tune_frequencies2_PGM[128] =
 {
   8.1758,    8.6620,    9.1770,    9.7227,    10.3009,    10.9134,    11.5623,    12.2499,
@@ -87,45 +91,39 @@ const float tune_frequencies2_PGM[128] =
   8372.0181, 8869.8442, 9397.2726, 9956.0635, 10548.0818, 11175.3034, 11839.8215, 12543.8540
 };
 
-
-
-static uint32_t next;
-
-void strumOff() {
-  for (int i = 0; i < 6; i++) {
-    strings[i] -> noteOff(random(0,100) / 100.0);
-  }
-}
-
-
-void strum() {
-  int* chord = major;
-  int root = 0;
-  int keyAnalog = analogRead(1);
+int readKeyOffsetFromAnalog(int pin) {
+  int keyAnalog = analogRead(pin);
   int keyOffset = 0;
-  
+
+  //A key-offset lower than -1 will cause IV chord to be too low to be sounded, with current voicings.
   if (keyAnalog > 900) {
-    keyOffset = 5;  
+    keyOffset = 5;
   } else if (keyAnalog > 800) {
-    keyOffset = 4;      
+    keyOffset = 4;
   } else if (keyAnalog > 700) {
-    keyOffset = 3;          
+    keyOffset = 3;
   } else if (keyAnalog > 600) {
     keyOffset = 2;
   } else if (keyAnalog > 500) {
-    keyOffset = 1;    
+    keyOffset = 1;
   } else if (keyAnalog > 400) {
-    keyOffset = 0;        
-  } else if (keyAnalog > 300) {
-    keyOffset = -1;    
-  } else if (keyAnalog > 200) {
-    keyOffset = -2;    
-  } else if (keyAnalog > 100) {
-    keyOffset = -3;    
+    keyOffset = 0;
   } else {
-    keyOffset = -4;
+    keyOffset = -1;
   }
-  
+  return keyOffset;
+}
+
+void strumOff() {
+  for (int i = 0; i < 6; i++) {
+    strings[i] -> noteOff(random(0, 100) / 100.0);
+  }
+}
+void strum() {
+  int* chord = major;
+  int root = 0;
+  gKeyOffset = readKeyOffsetFromAnalog(1);
+
   if (buttonStates[0] && buttonStates[1]) {
     root = 0;
     chord = sus2;
@@ -139,8 +137,8 @@ void strum() {
     root = 0;
     chord = sus4;
   } else if (buttonStates[0]) {
-    root = 0;    
-    chord = major;      
+    root = 0;
+    chord = major;
   } else if (buttonStates[1] && buttonStates[2]) {
     chord = minor7;
     root = -10;
@@ -165,10 +163,15 @@ void strum() {
   }
 
   int delayAnalog = analogRead(0);
-  int delayAmt = map(delayAnalog, 0,1023, 0, 50);
+  int delayAmt = map(delayAnalog, 0, 1023, 0, 50);
   if (chord != NULL) {
     for (int i = 0; i < 6; i++) {
-      strings[i] -> noteOn(tune_frequencies2_PGM[keyOffset + root + chord[i]], random(20, 40) / 100.0);
+      int note = gKeyOffset + root + chord[i];
+      if (note >= 40) {
+        strings[i] -> noteOn(tune_frequencies2_PGM[note], random(20, 40) / 100.0);
+      } else {
+        //red-flag that a note is being attempted that can't be sounded?
+      }
       delay(delayAmt);
     }
   }
@@ -179,7 +182,7 @@ void setup() {
   // put your setup code here, to run once:
 
   Serial.begin(115200);
-  for(int i=3; i < 7; i++) {
+  for (int i = 3; i < 7; i++) {
     pinMode(i, INPUT_PULLUP);
   }
 
@@ -217,11 +220,11 @@ void setup() {
 }
 
 void showButtonStates() {
-    Serial.print("buttons ");
-    Serial.print(buttonStates[0]);
-    Serial.print(buttonStates[1]);
-    Serial.print(buttonStates[2]);
-    Serial.println(buttonStates[3]);
+  Serial.print("buttons ");
+  Serial.print(buttonStates[0]);
+  Serial.print(buttonStates[1]);
+  Serial.print(buttonStates[2]);
+  Serial.println(buttonStates[3]);
 }
 void loop() {
   // put your main code here, to run repeatedly:
@@ -232,9 +235,9 @@ void loop() {
   {
     float volume = map(analogRead(A3), 0, 1023, 0, 60) / 100.0;
     sgtl5000_1.volume(volume); //TODO: consider updating volume more often.
-    
-    for(int bn = 0; bn < 4; bn++){
-      buttonStates[bn] = digitalRead(3+bn)==LOW;
+
+    for (int bn = 0; bn < 4; bn++) {
+      buttonStates[bn] = digitalRead(3 + bn) == LOW;
     }
     //showButtonStates();
     int waitTime = map(analogRead(2), 0, 1023, 300, 700);
@@ -261,7 +264,10 @@ void loop() {
     }
     num++;
 
-    Serial.print("Teensy Chord Player - Diagnostics (Audio CPU and Audio Mem max usages: ");
+    Serial.println("Teensy Chord Player");
+    Serial.print("Key ");
+    Serial.println(gKeyOffset);
+    Serial.println("Diagnostics (Audio CPU and Audio Mem max usages: ");
     Serial.print(AudioProcessorUsageMax());
     Serial.print(" ");
     Serial.println(AudioMemoryUsageMax());
