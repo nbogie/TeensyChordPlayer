@@ -66,7 +66,8 @@ int offsets[7] = {0, 2, 4, 5, 7, 9, 11};
 
 bool buttonStates[4] = {false, false, false, false};
 
-static uint32_t next;
+static uint32_t nextStrum;
+static uint32_t nextVolumeUpdate;
 int gKeyOffset = 0; //at higher scope to allow periodic logging
 
 //Note: I found that on the teensy 3.2, at 96MHz, notes lower than the 40th one do not
@@ -189,7 +190,8 @@ void setup() {
   // audio library init
   AudioMemory(20);
 
-  next = millis() + 1000;
+  nextStrum = millis() + 1000;
+  nextVolumeUpdate = millis() + 1000;
 
   AudioNoInterrupts();
 
@@ -230,18 +232,21 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   static uint32_t num = 0;
-
-  if (millis() == next)
+  unsigned long ms = millis();
+  if (ms >= nextVolumeUpdate)
   {
     float volume = map(analogRead(A3), 0, 1023, 0, 60) / 100.0;
-    sgtl5000_1.volume(volume); //TODO: consider updating volume more often.
-
+    sgtl5000_1.volume(volume);
+    nextVolumeUpdate = ms + 50;
+  }
+  if (ms >= nextStrum)
+  {
     for (int bn = 0; bn < 4; bn++) {
       buttonStates[bn] = digitalRead(3 + bn) == LOW;
     }
     //showButtonStates();
     int waitTime = map(analogRead(2), 0, 1023, 300, 700);
-    next = millis() + waitTime;
+    nextStrum = ms + waitTime;
     switch (num % 4)
     {
       case 0:
