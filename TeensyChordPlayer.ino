@@ -187,11 +187,11 @@ void setup() {
   // put your setup code here, to run once:
 
   Serial.begin(115200);
-  
+
   if (!hasAudioBoard) {
     analogWriteResolution(12); //only needed if we're using the built-in DAC for audio out
   }
-  
+
   for (int i = 3; i < 7; i++) {
     pinMode(i, INPUT_PULLUP);
   }
@@ -224,14 +224,14 @@ void setup() {
   drum4.secondMix(0.0);
   drum4.pitchMod(0.0);
 
-  
-   if (hasAudioBoard) {
-     sgtl5000_1.enable();
-     sgtl5000_1.volume(0.5);      
-   } else {
-     mixerFinal.gain(1, 0.3);
-     mixerFinal.gain(2, 0.3);
-   }
+
+  if (hasAudioBoard) {
+    sgtl5000_1.enable();
+    sgtl5000_1.volume(0.5);
+  } else {
+    mixerFinal.gain(1, 0.3);
+    mixerFinal.gain(2, 0.3);
+  }
   AudioInterrupts();
 }
 
@@ -253,8 +253,8 @@ void loop() {
     if (hasAudioBoard) {
       sgtl5000_1.volume(volume);
     } else {
-      mixerFinal.gain(1, volume/2);
-      mixerFinal.gain(2, volume/2);
+      mixerFinal.gain(1, volume / 2);
+      mixerFinal.gain(2, volume / 2);
     }
     nextVolumeUpdate = ms + 50;
   }
