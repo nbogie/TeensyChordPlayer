@@ -13,6 +13,7 @@
 // * 4 potentiometers A0 - A3.  A3 could be logarithmic, as it is for volume.
 // * 4 buttons connecting p3-p6 to ground (configures them to use internal pullup resistors)
 
+boolean hasAudioBoard;
 // GUItool: begin automatically generated code
 AudioSynthSimpleDrum     drum1;          //xy=55,64
 AudioSynthSimpleDrum     drum2;          //xy=66,101
@@ -29,6 +30,7 @@ AudioMixer4              mixerStrings1;  //xy=324,285
 AudioMixer4              mixerStrings2;  //xy=331,356
 AudioMixer4              mixerFinal;     //xy=534,229
 AudioOutputI2S           i2s1;           //xy=679,188
+AudioOutputAnalog        dac1;           //xy=713,233
 AudioConnection          patchCord1(drum1, 0, mixerDrums, 0);
 AudioConnection          patchCord2(drum2, 0, mixerDrums, 1);
 AudioConnection          patchCord3(drum3, 0, mixerDrums, 2);
@@ -45,6 +47,7 @@ AudioConnection          patchCord13(mixerStrings2, 0, mixerFinal, 2);
 AudioConnection          patchCord14(mixerFinal, 0, i2s1, 0);
 AudioConnection          patchCord15(mixerFinal, 0, i2s1, 1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=638,468
+AudioConnection          patchCord16(mixerFinal, dac1);
 // GUItool: end automatically generated code
 
 AudioSynthKarplusStrong *strings [] = { &string1, &string2, &string3, &string4, &string5, &string6 };
@@ -180,9 +183,15 @@ void strum() {
 
 
 void setup() {
+  hasAudioBoard = true;
   // put your setup code here, to run once:
 
   Serial.begin(115200);
+  
+  if (!hasAudioBoard) {
+    analogWriteResolution(12); //only needed if we're using the built-in DAC for audio out
+  }
+  
   for (int i = 3; i < 7; i++) {
     pinMode(i, INPUT_PULLUP);
   }
@@ -215,9 +224,14 @@ void setup() {
   drum4.secondMix(0.0);
   drum4.pitchMod(0.0);
 
-  sgtl5000_1.enable();
-  sgtl5000_1.volume(0.5);
-
+  
+   if (hasAudioBoard) {
+     sgtl5000_1.enable();
+     sgtl5000_1.volume(0.5);      
+   } else {
+     mixerFinal.gain(1, 0.3);
+     mixerFinal.gain(2, 0.3);
+   }
   AudioInterrupts();
 }
 
@@ -236,7 +250,12 @@ void loop() {
   if (ms >= nextVolumeUpdate)
   {
     float volume = map(analogRead(A3), 0, 1023, 0, 60) / 100.0;
-    sgtl5000_1.volume(volume);
+    if (hasAudioBoard) {
+      sgtl5000_1.volume(volume);
+    } else {
+      mixerFinal.gain(1, volume/2);
+      mixerFinal.gain(2, volume/2);
+    }
     nextVolumeUpdate = ms + 50;
   }
   if (ms >= nextStrum)
